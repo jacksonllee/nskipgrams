@@ -8,6 +8,10 @@ Fields of study using ngrams from sequential data, especially
 computational linguistics and natural language processing, will find
 this package helpful.
 
+* Memory-efficient: Ngrams are internally stored in tries.
+* Hassle-free: No dependencies. Written in pure Python. Today is a great day.
+* Well-tested: Unit tests cover all supported functionality, run by continuous integration.
+
 ## Usage
 
 To initialize an empty collection of ngrams:
@@ -27,18 +31,19 @@ To add ngrams from a sequence:
 To iterate through the collected ngrams of a given order:
 
 ```python
-# `list` below just materializes the generator for demo here, not necessary in actual usage
->>> list(char_ngrams.ngrams_with_counts(order=2))
-[(('m', 'y'), 1),
- (('y', ' '), 1),
- (('y', 'o'), 2),
- ((' ', 'c'), 3),
- (('c', 'a'), 3),
- (('a', 't'), 3),
- (('t', 's'), 1),
- (('o', 'u'), 2),
- (('u', 'r'), 2),
- (('r', ' '), 2)]
+>>> for ngram, count in char_ngrams.ngrams_with_counts(order=2):
+...     print(ngram, count)
+...
+('m', 'y') 1
+('y', ' ') 1
+('y', 'o') 2
+(' ', 'c') 3
+('c', 'a') 3
+('a', 't') 3
+('t', 's') 1
+('o', 'u') 2
+('u', 'r') 2
+('r', ' ') 2
 ```
 
 To get the total count for a given order:
@@ -83,10 +88,12 @@ segmented phrases/sentences as sequences and word-based ngrams:
 >>> word_ngrams = Ngrams(order=2)
 >>> word_ngrams.add_from_seq(("in", "the", "beginning"))
 >>> word_ngrams.add_from_seq(("in", "the", "end"))
->>> list(word_ngrams.ngrams_with_counts(order=2))
-[(('in', 'the'), 2),
- (('the', 'beginning'), 1),
- (('the', 'end'), 1)]
+>>> for ngram, count in word_ngrams.ngrams_with_counts(order=2)
+...     print(ngram, count)
+...
+('in', 'the') 2
+('the', 'beginning') 1
+('the', 'end') 1
 ```
 
 ## Installation
