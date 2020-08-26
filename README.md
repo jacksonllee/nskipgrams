@@ -1,5 +1,6 @@
 # ngrams
 
+[![DOI](https://zenodo.org/badge/290420602.svg)](https://zenodo.org/badge/latestdoi/290420602)
 [![CircleCI](https://circleci.com/gh/jacksonllee/ngrams/tree/main.svg?style=svg)](https://circleci.com/gh/jacksonllee/ngrams/tree/main)
 
 `ngrams` is a lightweight Python package that makes it convenient to
@@ -9,8 +10,8 @@ computational linguistics and natural language processing, will find
 this package helpful.
 
 * Memory-efficient: Ngrams are internally stored in tries.
-* Hassle-free: No dependencies. Written in pure Python. Today is a great day.
 * Well-tested: Unit tests cover all supported functionality, run by continuous integration.
+* Hassle-free: No dependencies. Written in pure Python. Today is a great day.
 
 ## Usage
 
@@ -133,6 +134,23 @@ git clone https://github.com/jacksonllee/ngrams.git
 cd ngrams
 pip install -r dev-requirements.txt  # For running the linter and tests
 pip install -e .
+```
+
+## Citation
+
+Jackson L. Lee. (2020, August 26). jacksonllee/ngrams: v0.1.0 (Version v0.1.0). Zenodo. http://doi.org/10.5281/zenodo.4002096
+
+```bibtex
+@software{jackson_l_lee_2020_4002096,
+  author       = {Jackson L. Lee},
+  title        = {jacksonllee/ngrams: v0.1.0},
+  month        = aug,
+  year         = 2020,
+  publisher    = {Zenodo},
+  version      = {v0.1.0},
+  doi          = {10.5281/zenodo.4002096},
+  url          = {https://doi.org/10.5281/zenodo.4002096}
+}
 ```
 
 ## License
