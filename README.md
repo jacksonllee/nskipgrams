@@ -89,7 +89,7 @@ segmented phrases/sentences as sequences and word-based ngrams:
 >>> word_ngrams = Ngrams(order=2)
 >>> word_ngrams.add_from_seq(("in", "the", "beginning"))
 >>> word_ngrams.add_from_seq(("in", "the", "end"))
->>> for ngram, count in word_ngrams.ngrams_with_counts(order=2)
+>>> for ngram, count in word_ngrams.ngrams_with_counts(order=2):
 ...     print(ngram, count)
 ...
 ('in', 'the') 2
