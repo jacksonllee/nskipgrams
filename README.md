@@ -104,13 +104,13 @@ Python 3.6 or above is required.
 To install from the command line:
 
 ```bash
-pip install -e git://github.com/jacksonllee/ngrams.git@v0.1.0#egg=ngrams
+pip install git+https://github.com/jacksonllee/ngrams@v0.1.0#egg=ngrams
 ```
 
 To include this package in `requirements.txt` ...
 
 ```
--e git://github.com/jacksonllee/ngrams.git@v0.1.0#egg=ngrams
+git+https://github.com/jacksonllee/ngrams@v0.1.0#egg=ngrams
 ```
 
 ... or in `setup.py`:
@@ -138,18 +138,15 @@ pip install -e .
 
 ## Citation
 
-Jackson L. Lee. (2020, August 26). jacksonllee/ngrams: v0.1.0 (Version v0.1.0). Zenodo. http://doi.org/10.5281/zenodo.4002096
+Lee, Jackson L. 2020. ngrams: A lightweight Python package to keep track of ngrams. https://doi.org/10.5281/zenodo.4002095
 
 ```bibtex
-@software{jackson_l_lee_2020_4002096,
+@software{leengrams,
   author       = {Jackson L. Lee},
-  title        = {jacksonllee/ngrams: v0.1.0},
-  month        = aug,
+  title        = {ngrams: A lightweight Python package to keep track of ngrams},
   year         = 2020,
-  publisher    = {Zenodo},
-  version      = {v0.1.0},
-  doi          = {10.5281/zenodo.4002096},
-  url          = {https://doi.org/10.5281/zenodo.4002096}
+  doi          = {10.5281/zenodo.4002095},
+  url          = {https://doi.org/10.5281/zenodo.4002095}
 }
 ```
 
