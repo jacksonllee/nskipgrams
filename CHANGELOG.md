@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
-* Implemented the prefix option and multiple orders in `Ngrams.ngrams_with_counts`.
-* Implemented `Ngrams.combine` to combine collections of ngrams.
-
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## [0.2.0] - 2020-08-28
+
+### Added
+* Implemented the prefix option and multiple orders in `Ngrams.ngrams_with_counts`.
+* Implemented `Ngrams.combine` to combine collections of ngrams.
 
 ## [0.1.0] - 2020-08-26
 
