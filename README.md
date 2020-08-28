@@ -15,12 +15,16 @@ this package helpful.
 
 ## Usage
 
+### Initializing An Ngram Collection
+
 To initialize an empty collection of ngrams:
 
 ```python
 >>> from ngrams import Ngrams
 >>> char_ngrams = Ngrams(order=3)  # handles unigrams, bigrams, and trigrams
 ```
+
+### Adding Ngrams
 
 To add ngrams from a sequence:
 
@@ -40,6 +44,14 @@ To add a single ngram:
 ```python
 >>> char_ngrams.add(("y", "o", "u"))
 ```
+
+As a best practice, it is recommended that an ngram be represented as a `tuple`
+regardless of what the individual elements are,
+e.g., `("y", "o", "u")` for character-based ngrams.
+As output examples show below, the `tuple` data type is also what this package
+uses to represent ngrams.
+
+### Accessing Ngrams
 
 To iterate through the collected ngrams:
 
@@ -119,6 +131,8 @@ To iterate with a specific order...
 ('y', 'o') 2
 ```
 
+### Accessing Counts
+
 To get the total count for a given order:
 
 ```python
@@ -135,12 +149,80 @@ To get the count of a particular ngram:
 3
 ```
 
+### Checking Membership
+
 To check if an ngram has an exact match in the collection so far:
 
 ```python
 >>> ("c", "a", "t") in char_ngrams
 True
 ```
+
+### Combining Collections of Ngrams
+
+To combine collections of ngrams (e.g., when you process data sources in parallel
+and have multiple `Ngrams` objects): 
+
+```python
+>>> char_ngrams1 = Ngrams(order=2); char_ngrams1.add_from_seq("my cat")
+>>> set(char_ngrams1.ngrams_with_counts(order=2))
+{((' ', 'c'), 1),
+ (('a', 't'), 1),
+ (('c', 'a'), 1),
+ (('m', 'y'), 1),
+ (('y', ' '), 1)}
+>>>
+>>> char_ngrams2 = Ngrams(order=2); char_ngrams2.add_from_seq("your cats")
+>>> set(char_ngrams2.ngrams_with_counts(order=2))
+{((' ', 'c'), 1),
+ (('a', 't'), 1),
+ (('c', 'a'), 1),
+ (('o', 'u'), 1),
+ (('r', ' '), 1),
+ (('t', 's'), 1),
+ (('u', 'r'), 1),
+ (('y', 'o'), 1)}
+>>>
+>>> char_ngrams3 = Ngrams(order=2); char_ngrams3.add_from_seq("her cats")
+>>> set(char_ngrams3.ngrams_with_counts(order=2))
+{((' ', 'c'), 1),
+ (('a', 't'), 1),
+ (('c', 'a'), 1),
+ (('e', 'r'), 1),
+ (('h', 'e'), 1),
+ (('r', ' '), 1),
+ (('t', 's'), 1)}
+>>>
+>>> char_ngrams1.combine(char_ngrams2, char_ngrams3)  # `combine` takes as many Ngrams objects as desired
+>>> set(char_ngrams1.ngrams_with_counts(order=2))
+{((' ', 'c'), 3),
+ (('a', 't'), 3),
+ (('c', 'a'), 3),
+ (('e', 'r'), 1),
+ (('h', 'e'), 1),
+ (('m', 'y'), 1),
+ (('o', 'u'), 1),
+ (('r', ' '), 2),
+ (('t', 's'), 2),
+ (('u', 'r'), 1),
+ (('y', ' '), 1),
+ (('y', 'o'), 1)}
+```
+
+If you have collections of ngrams in a container,
+and if you don't want to mutate any of them
+(the `combine` method works in-place and mutates `these_ngrams`
+when `these_ngrams.combine` is called),
+then you can create an empty ngram collection and combine into it
+all of your ngrams:
+
+```python
+>>> collections = [char_ngrams1, char_ngrams2, char_ngrams3]
+>>> all_ngrams = Ngrams(order=2)  # A new, empty collection of ngrams
+>>> all_ngrams.combine(*collections)
+```
+
+### Any "Sequences" And Their Corresponding "Ngrams" Work
 
 While the examples above use text strings as sequences and character-based ngrams,
 another common usage in computational linguistics and NLP is to have

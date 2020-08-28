@@ -245,3 +245,24 @@ class Ngrams:
         for n in orders:
             trie = self._tries[n]
             yield from _flattened_ngrams_with_counts(trie, prefix)
+
+    def combine(self, *others):
+        """Combine collections of ngrams in-place.
+
+        Parameters
+        ----------
+        *others : iterable of Ngrams
+
+        Raises
+        ------
+        TypeError
+            If any item in `others` is not an `Ngrams` instance.
+        """
+        for other in others:
+            if type(other) != Ngrams:
+                raise TypeError(
+                    f"arg must be an Ngrams instance: {type(other)}"
+                )
+            order = range(1, min(other.order, self.order) + 1)
+            for ngram, count in other.ngrams_with_counts(order=order):
+                self.add(ngram, count)

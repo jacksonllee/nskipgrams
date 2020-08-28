@@ -231,3 +231,96 @@ def test_version_number_match_with_changelog():
         f"CHANGELOG ({version_in_changelog}) "
         "are updated to match the latest version number"
     )
+
+
+def test_combine():
+    char_ngrams1 = ngrams.Ngrams(order=2)
+    char_ngrams1.add_from_seq("my cat")
+    assert set(char_ngrams1.ngrams_with_counts()) == {
+        (("c",), 1),
+        (("t",), 1),
+        ((" ",), 1),
+        (("a",), 1),
+        (("m",), 1),
+        (("y",), 1),
+        ((" ", "c"), 1),
+        (("a", "t"), 1),
+        (("c", "a"), 1),
+        (("m", "y"), 1),
+        (("y", " "), 1),
+    }
+
+    char_ngrams2 = ngrams.Ngrams(order=2)
+    char_ngrams2.add_from_seq("your cats")
+    assert set(char_ngrams2.ngrams_with_counts()) == {
+        (("c",), 1),
+        (("y",), 1),
+        (("s",), 1),
+        (("a",), 1),
+        (("t",), 1),
+        ((" ",), 1),
+        (("u",), 1),
+        (("o",), 1),
+        (("r",), 1),
+        ((" ", "c"), 1),
+        (("a", "t"), 1),
+        (("c", "a"), 1),
+        (("o", "u"), 1),
+        (("r", " "), 1),
+        (("t", "s"), 1),
+        (("u", "r"), 1),
+        (("y", "o"), 1),
+    }
+
+    char_ngrams3 = ngrams.Ngrams(order=2)
+    char_ngrams3.add_from_seq("her cats")
+    assert set(char_ngrams3.ngrams_with_counts()) == {
+        (("s",), 1),
+        (("t",), 1),
+        (("a",), 1),
+        ((" ",), 1),
+        (("h",), 1),
+        (("r",), 1),
+        (("e",), 1),
+        (("c",), 1),
+        ((" ", "c"), 1),
+        (("a", "t"), 1),
+        (("c", "a"), 1),
+        (("e", "r"), 1),
+        (("h", "e"), 1),
+        (("r", " "), 1),
+        (("t", "s"), 1),
+    }
+
+    char_ngrams1.combine(char_ngrams2, char_ngrams3)
+    assert set(char_ngrams1.ngrams_with_counts()) == {
+        (("u",), 1),
+        (("r",), 2),
+        (("h",), 1),
+        (("y",), 2),
+        (("a",), 3),
+        (("e",), 1),
+        (("c",), 3),
+        (("o",), 1),
+        (("m",), 1),
+        (("s",), 2),
+        (("t",), 3),
+        ((" ",), 3),
+        ((" ", "c"), 3),
+        (("a", "t"), 3),
+        (("c", "a"), 3),
+        (("e", "r"), 1),
+        (("h", "e"), 1),
+        (("m", "y"), 1),
+        (("o", "u"), 1),
+        (("r", " "), 2),
+        (("t", "s"), 2),
+        (("u", "r"), 1),
+        (("y", " "), 1),
+        (("y", "o"), 1),
+    }
+
+
+def test_combine_wrong_data_type(ngrams_for_testing):
+    with pytest.raises(TypeError):
+        ngrams_for_testing.combine("foobar")
