@@ -11,7 +11,7 @@ def _trie():
     return collections.defaultdict(_trie)
 
 
-def _flattened_ngrams_with_counts(trie):
+def _flattened_ngrams_with_counts(trie, prefix):
     def _flatten_trie(trie_):
         try:
             # If `trie.values()` are not sum-able (hence TypeError), they
@@ -26,17 +26,28 @@ def _flattened_ngrams_with_counts(trie):
         else:
             yield from trie_.items()
 
-    for tokens in _flatten_trie(trie):
-        ngram = tokens[:-1]
-        count = tokens[-1]
-        yield ngram, count
+    prefix = prefix or ()
+    inner_trie = _get_inner_trie_from_prefix(trie, prefix)
+
+    if inner_trie is None:
+        return
+    elif type(inner_trie) == int:
+        # `inner_trie` is the count of the ngram (= the given prefix)
+        yield prefix, inner_trie
+    else:
+        for tokens in _flatten_trie(inner_trie):
+            ngram = tokens[:-1]
+            count = tokens[-1]
+            yield prefix + ngram, count
 
 
 def _get_inner_trie_from_prefix(trie, ngram_prefix):
     for token in ngram_prefix:
         try:
             trie = trie[token]
-        except KeyError:
+        except (KeyError, TypeError):
+            # KeyError if `trie` is a dict but `token` isn't a key.
+            # TypeError if `trie` is an int for an ngram's count.
             return None
     return trie
 
@@ -173,12 +184,17 @@ class Ngrams:
         """
         return bool(self.count(ngram))
 
-    def total_count(self, order, unique=False):
+    def total_count(self, order=None, unique=False):
         """Return the total count of all ngrams for the given order.
 
         Parameters
         ----------
-        order : int
+        order : int or iterable of int, optional
+            Either an integer for a single order (e.g., `2`),
+            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
+            If not provided or if it is `None`, all orders of
+            (1, 2, ..., `self.order`) handled by this collection of ngrams
+            are used.
         unique : bool
             If False (the default), the returned number is the sum of all
             occurrences of the relevant ngrams.
@@ -195,17 +211,37 @@ class Ngrams:
         else:
             return sum(count for _, count in ngrams_with_counts)
 
-    def ngrams_with_counts(self, order):
+    def ngrams_with_counts(self, order=None, prefix=None):
         """Yield the pairs of ngrams and counts for the given order.
 
         Parameters
         ----------
-        order : int
+        order : int or iterable of int, optional
+            Either an integer for a single order (e.g., `2`),
+            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
+            If not provided or if it is `None`, all orders of
+            (1, 2, ..., `self.order`) handled by this collection of ngrams
+            are used.
+        prefix : iterable, optional
+            If provided, all yielded ngrams start with this prefix.
 
         Yields
         ------
         tuple, int
-            A tuple of the ngram (tuple) and its count (int)
+            An ngram (tuple) and its count (int)
         """
-        trie = self._tries[order]
-        yield from _flattened_ngrams_with_counts(trie)
+        if type(order) == int:
+            orders = [order]
+        elif hasattr(order, "__iter__"):
+            orders = list(order)
+            if not all(type(x) == int for x in orders):
+                raise ValueError(f"all orders must be integers: {orders}")
+        elif order is None:
+            orders = range(1, self.order + 1)
+        else:
+            raise ValueError(
+                f"`order` must be an int or an iterable of int: {order}"
+            )
+        for n in orders:
+            trie = self._tries[n]
+            yield from _flattened_ngrams_with_counts(trie, prefix)

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
+* Implemented the prefix option and multiple orders in `Ngrams.ngrams_with_counts`.
+
 ### Changed
 ### Deprecated
 ### Removed

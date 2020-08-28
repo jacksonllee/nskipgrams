@@ -29,7 +29,56 @@ To add ngrams from a sequence:
 >>> char_ngrams.add_from_seq("your cat", count=2)
 ```
 
-To iterate through the collected ngrams of a given order:
+Here, a sequence is anything that can be iterated over,
+and the corresponding ngrams are extracted from the individual elements
+off of the sequence.
+For example, if the sequence is a text string like `"my cats"` above,
+then the ngrams are character-based (hence the chosen variable name `char_ngrams`).
+
+To add a single ngram:
+
+```python
+>>> char_ngrams.add(("y", "o", "u"))
+```
+
+To iterate through the collected ngrams:
+
+```python
+>>> for ngram, count in char_ngrams.ngrams_with_counts():
+...     print(ngram, count)
+...
+('m',) 1
+('y',) 3
+(' ',) 3
+('c',) 3
+('a',) 3
+('t',) 3
+('s',) 1
+('o',) 2
+('u',) 2
+('r',) 2
+('m', 'y') 1
+('y', ' ') 1
+('y', 'o') 2
+(' ', 'c') 3
+('c', 'a') 3
+('a', 't') 3
+('t', 's') 1
+('o', 'u') 2
+('u', 'r') 2
+('r', ' ') 2
+('m', 'y', ' ') 1
+('y', ' ', 'c') 1
+('y', 'o', 'u') 3
+(' ', 'c', 'a') 3
+('c', 'a', 't') 3
+('a', 't', 's') 1
+('o', 'u', 'r') 2
+('u', 'r', ' ') 2
+('r', ' ', 'c') 2
+```
+
+To iterate with a specific order...
 
 ```python
 >>> for ngram, count in char_ngrams.ngrams_with_counts(order=2):
@@ -45,6 +94,29 @@ To iterate through the collected ngrams of a given order:
 ('o', 'u') 2
 ('u', 'r') 2
 ('r', ' ') 2
+```
+
+...or with a particular prefix:
+
+```python
+>>> for ngram, count in char_ngrams.ngrams_with_counts(prefix=("y",)):
+...     print(ngram, count)
+...
+('y',) 3
+('y', ' ') 1
+('y', 'o') 2
+('y', ' ', 'c') 1
+('y', 'o', 'u') 3
+```
+
+...or with both order and prefix specified:
+
+```python
+>>> for ngram, count in char_ngrams.ngrams_with_counts(order=2, prefix=("y",)):
+...     print(ngram, count)
+...
+('y', ' ') 1
+('y', 'o') 2
 ```
 
 To get the total count for a given order:
@@ -70,16 +142,6 @@ To check if an ngram has an exact match in the collection so far:
 True
 ```
 
-If instead of sequences you have ngrams to add directly:
-
-```python
->>> char_ngrams.add(("f", "o", "o"))  # `add` here versus `add_from_seq` above
->>> ("f", "o", "o") in char_ngrams
-True
-```
-
-The terms "ngrams" and "sequences" are generic
-and can represent any compatible concepts.
 While the examples above use text strings as sequences and character-based ngrams,
 another common usage in computational linguistics and NLP is to have
 segmented phrases/sentences as sequences and word-based ngrams:

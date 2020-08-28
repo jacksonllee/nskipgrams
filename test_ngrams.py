@@ -120,6 +120,104 @@ def test_ngrams_with_counts(order, expected, ngrams_for_testing):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "order, prefix, expected",
+    [
+        (1, ("b",), {(("b",), 7)}),
+        (1, ("s",), set()),
+        (1, ("a", "b"), set()),
+        (2, ("b",), {(("b", "c"), 6)}),
+        (2, ("b", "c"), {(("b", "c"), 6)}),
+        (2, ("b", "a"), set()),
+        (2, ("a", "b", "c"), set()),
+        (3, ("a",), {(("a", "b", "c"), 6)}),
+        (3, ("a", "b"), {(("a", "b", "c"), 6)}),
+        (3, ("a", "b", "c"), {(("a", "b", "c"), 6)}),
+        (3, ("a", "c", "b"), set()),
+        (3, ("a", "b", "c", "d"), set()),
+    ],
+)
+def test_ngrams_with_counts_with_prefix(
+    order, prefix, expected, ngrams_for_testing
+):
+    actual = set(ngrams_for_testing.ngrams_with_counts(order, prefix))
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "order, expected",
+    [
+        (
+            (1, 2),
+            {
+                (("a",), 7),
+                (("b",), 7),
+                (("c",), 6),
+                (("d",), 5),
+                (("e",), 5),
+                (("f",), 2),
+                (("a", "b"), 7),
+                (("b", "c"), 6),
+                (("c", "d"), 5),
+                (("d", "e"), 5),
+                (("e", "f"), 2),
+            },
+        ),
+        (
+            (1, 2, 3),
+            {
+                (("a",), 7),
+                (("b",), 7),
+                (("c",), 6),
+                (("d",), 5),
+                (("e",), 5),
+                (("f",), 2),
+                (("a", "b"), 7),
+                (("b", "c"), 6),
+                (("c", "d"), 5),
+                (("d", "e"), 5),
+                (("e", "f"), 2),
+                (("a", "b", "c"), 6),
+                (("b", "c", "d"), 5),
+                (("c", "d", "e"), 5),
+                (("d", "e", "f"), 2),
+            },
+        ),
+        (
+            None,
+            {
+                (("a",), 7),
+                (("b",), 7),
+                (("c",), 6),
+                (("d",), 5),
+                (("e",), 5),
+                (("f",), 2),
+                (("a", "b"), 7),
+                (("b", "c"), 6),
+                (("c", "d"), 5),
+                (("d", "e"), 5),
+                (("e", "f"), 2),
+                (("a", "b", "c"), 6),
+                (("b", "c", "d"), 5),
+                (("c", "d", "e"), 5),
+                (("d", "e", "f"), 2),
+            },
+        ),
+    ],
+)
+def test_ngrams_with_counts_with_complex_order(
+    order, expected, ngrams_for_testing
+):
+    actual = set(ngrams_for_testing.ngrams_with_counts(order))
+    assert actual == expected
+
+
+@pytest.mark.parametrize("order", ["foobar", 1.5])
+def test_ngrams_with_counts_with_wrong_order_type(order, ngrams_for_testing):
+    with pytest.raises(ValueError):
+        set(ngrams_for_testing.ngrams_with_counts(order))
+
+
 def test_version_number_match_with_changelog():
     """__version__ and CHANGELOG.md match for the latest version number."""
     repo_dir = os.path.dirname(os.path.realpath(__file__))
