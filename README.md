@@ -4,14 +4,24 @@
 [![CircleCI](https://circleci.com/gh/jacksonllee/ngrams/tree/main.svg?style=svg)](https://circleci.com/gh/jacksonllee/ngrams/tree/main)
 
 `ngrams` is a lightweight Python package that makes it convenient to
-keep track of ngrams.
+work with ngrams.
 Fields of study using ngrams from sequential data, especially
 computational linguistics and natural language processing, will find
 this package helpful.
 
+Highlights:
+
 * Memory-efficient: Ngrams are internally stored in tries.
 * Well-tested: Unit tests cover all supported functionality, run by continuous integration.
 * Hassle-free: No dependencies. Written in pure Python. Today is a great day.
+
+Table of contents:
+
+* [Usage](https://github.com/jacksonllee/ngrams#usage)
+* [Installation](https://github.com/jacksonllee/ngrams#installation)
+* [License](https://github.com/jacksonllee/ngrams#license)
+* [Changelog](https://github.com/jacksonllee/ngrams#changelog)
+* [Citation](https://github.com/jacksonllee/ngrams#citation)
 
 ## Usage
 
@@ -248,13 +258,13 @@ Python 3.6 or above is required.
 To install from the command line:
 
 ```bash
-pip install git+https://github.com/jacksonllee/ngrams@v0.1.0#egg=ngrams
+pip install git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams
 ```
 
 To include this package in `requirements.txt` ...
 
 ```
-git+https://github.com/jacksonllee/ngrams@v0.1.0#egg=ngrams
+git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams
 ```
 
 ... or in `setup.py`:
@@ -264,7 +274,7 @@ setup(
     # ...
     install_requires=[
         # ...
-        "ngrams @ git+https://github.com/jacksonllee/ngrams@v0.1.0#egg=ngrams",
+        "ngrams @ git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams",
         # ...
     ],
     # ...
@@ -282,12 +292,12 @@ pip install -e .
 
 ## Citation
 
-Lee, Jackson L. 2020. ngrams: A lightweight Python package to keep track of ngrams. https://doi.org/10.5281/zenodo.4002095
+Lee, Jackson L. 2020. ngrams: A lightweight Python package to handle ngrams. https://doi.org/10.5281/zenodo.4002095
 
 ```bibtex
 @software{leengrams,
   author       = {Jackson L. Lee},
-  title        = {ngrams: A lightweight Python package to keep track of ngrams},
+  title        = {ngrams: A lightweight Python package to handle ngrams},
   year         = 2020,
   doi          = {10.5281/zenodo.4002095},
   url          = {https://doi.org/10.5281/zenodo.4002095}
