@@ -129,6 +129,12 @@ To iterate with a specific order...
 ('y', 'o') 2
 ('y', ' ', 'c') 1
 ('y', 'o', 'u') 3
+>>>
+>>> for ngram, count in char_ngrams.ngrams_with_counts(prefix=("y", "o")):
+...     print(ngram, count)
+...
+('y', 'o') 2
+('y', 'o', 'u') 3
 ```
 
 ...or with both order and prefix specified:
