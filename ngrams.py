@@ -43,12 +43,19 @@ def _flattened_ngrams_with_counts(trie, prefix):
 
 def _get_inner_trie_from_prefix(trie, ngram_prefix):
     for token in ngram_prefix:
-        try:
-            trie = trie[token]
-        except (KeyError, TypeError):
-            # KeyError if `trie` is a dict but `token` isn't a key.
-            # TypeError if `trie` is an int for an ngram's count.
+        if type(trie) == int or token not in trie:
+            # If we reach the end of the trie without exhausting the prefix,
+            # then the prefix is simply not a prefix for the given trie.
             return None
+        else:
+            # Since `trie` is a defaultdict but not a vanilla dict,
+            # we can't use a try-except block around `trie = trie[token]`
+            # which would never raise KeyError and would undesirably
+            # create an empty defaultdict by calling `trie[token]`
+            # even for an unfound `token`.
+            trie = trie[token]
+    # `trie` at this point could be an int for the prefix's count,
+    # or an actual trie that continues from the prefix.
     return trie
 
 

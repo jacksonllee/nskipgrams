@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 ### Removed
 ### Fixed
+* Avoided creating empty inner tries unnecessarily in the internal tries.
+
 ### Security
 
 ## [0.2.0] - 2020-08-28
