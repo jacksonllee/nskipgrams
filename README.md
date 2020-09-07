@@ -11,6 +11,7 @@ this package helpful.
 
 Highlights:
 
+* Simple: Store, access, and count ngrams -- that's it.
 * Memory-efficient: Ngrams are internally stored in tries.
 * Well-tested: Unit tests cover all supported functionality, run by continuous integration.
 * Hassle-free: No dependencies. Written in pure Python. Today is a great day.
@@ -264,13 +265,13 @@ Python 3.6 or above is required.
 To install from the command line:
 
 ```bash
-pip install git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams
+pip install git+https://github.com/jacksonllee/ngrams@v0.2.1#egg=ngrams
 ```
 
 To include this package in `requirements.txt` ...
 
 ```
-git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams
+git+https://github.com/jacksonllee/ngrams@v0.2.1#egg=ngrams
 ```
 
 ... or in `setup.py`:
@@ -280,7 +281,7 @@ setup(
     # ...
     install_requires=[
         # ...
-        "ngrams @ git+https://github.com/jacksonllee/ngrams@v0.2.0#egg=ngrams",
+        "ngrams @ git+https://github.com/jacksonllee/ngrams@v0.2.1#egg=ngrams",
         # ...
     ],
     # ...

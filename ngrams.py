@@ -1,4 +1,9 @@
-"""Define the `Ngrams` class and related tools to handle ngrams."""
+"""ngrams: A lightweight Python package to handle ngrams
+
+Author: Jackson L. Lee <jacksonlunlee@gmail.com>
+License: MIT License
+Source: https://github.com/jacksonllee/ngrams
+"""
 
 import collections
 import pkg_resources
