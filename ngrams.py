@@ -94,6 +94,117 @@ def ngrams_from_seq(seq, n):
     yield from zip(*(seq[i:] for i in range(n)))
 
 
+class _NSkipgrams:
+
+    def __init__(self, n, skip=0):
+        if type(n) != int or n < 1:
+            raise ValueError(f"n must be an integer >= 1: {n}")
+        if type(skip) != int or skip < 0:
+            raise ValueError(f"skip must be an integer >= 0: {skip}")
+        self.n = n
+        self.skip = skip
+        self._tries = {(i + 1, k): _trie() for i in range(n) for k in range(skip + 1)}
+
+    def _add(self, ngram, skip=0, count=1):
+        if not 1 <= len(ngram) <= self.n:
+            raise ValueError(f"length of {ngram} is outside of [1, {self.n}]")
+        if not 0 <= skip <= self.skip:
+            raise ValueError(f"skip is outside of [0, {self.skip}]: {skip}")
+        trie = self._tries[(len(ngram), skip)]
+        for token in ngram[:-1]:
+            trie = trie[token]
+        last_token = ngram[-1]
+        if last_token in trie:
+            trie[last_token] += count
+        else:
+            trie[last_token] = count
+
+    def _add_from_seq(self, seq, count=1):
+        for n in range(1, min(self.n, len(seq)) + 1):
+            for skip in range(0, min(self.skip + 1, len(seq) - 1)):
+                for ngram in skipgrams_from_seq(seq, skip, n):
+                    self._add(ngram, skip=skip, count=count)
+
+    def _count(self, ngram, skip=0):
+        if not 0 <= skip <= self.skip:
+            raise ValueError(f"skip is outside of [0, {self.skip}]: {skip}")
+        if len(ngram) > self.n:
+            return 0
+        trie = self._tries[(len(ngram), skip)]
+        count_ = _get_inner_trie_from_prefix(trie, ngram)
+        if isinstance(count_, dict) or not count_:
+            return 0
+        else:
+            return count_
+
+    def __contains__(self, ngram):
+        for skip in range(self.skip + 1):
+            c = self._count(ngram, skip=skip)
+            if c:
+                return c
+        else:
+            return 0
+
+    def total_count(self, order=None, unique=False):
+        ngrams_with_counts = self.ngrams_with_counts(order)
+        if unique:
+            return sum(1 for _ in ngrams_with_counts)
+        else:
+            return sum(count for _, count in ngrams_with_counts)
+
+    def ngrams_with_counts(self, order=None, prefix=None):
+        """Yield the pairs of ngrams and counts for the given order.
+
+        Parameters
+        ----------
+        order : int or iterable of int, optional
+            Either an integer for a single order (e.g., `2`),
+            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
+            If not provided or if it is `None`, all orders of
+            (1, 2, ..., `self.order`) handled by this collection of ngrams
+            are used.
+        prefix : iterable, optional
+            If provided, all yielded ngrams start with this prefix.
+
+        Yields
+        ------
+        tuple, int
+            An ngram (tuple) and its count (int)
+        """
+        if type(order) == int:
+            orders = [order]
+        elif hasattr(order, "__iter__"):
+            orders = list(order)
+            if not all(type(x) == int for x in orders):
+                raise ValueError(f"all orders must be integers: {orders}")
+        elif order is None:
+            orders = range(1, self.n + 1)
+        else:
+            raise ValueError(f"`order` must be an int or an iterable of int: {order}")
+        for n in orders:
+            trie = self._tries[n]
+            yield from _flattened_ngrams_with_counts(trie, prefix)
+
+    def combine(self, *others):
+        """Combine collections of ngrams in-place.
+
+        Parameters
+        ----------
+        *others : iterable of Ngrams
+
+        Raises
+        ------
+        TypeError
+            If any item in `others` is not an `Ngrams` instance.
+        """
+        for other in others:
+            if type(other) != Ngrams:
+                raise TypeError(f"arg must be an Ngrams instance: {type(other)}")
+            order = range(1, min(other.n, self.n) + 1)
+            for ngram, count in other.ngrams_with_counts(order=order):
+                self._add(ngram, count)
+
+
 class Ngrams:
     """A collection of ngrams.
 
