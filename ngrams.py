@@ -5,7 +5,8 @@ License: MIT License
 Source: https://github.com/jacksonllee/ngrams
 """
 
-import collections
+from collections import defaultdict, OrderedDict
+from itertools import combinations
 import pkg_resources
 
 
@@ -13,7 +14,7 @@ __version__ = pkg_resources.get_distribution("ngrams").version
 
 
 def _trie():
-    return collections.defaultdict(_trie)
+    return defaultdict(_trie)
 
 
 def _flattened_ngrams_with_counts(trie, prefix):
@@ -62,6 +63,18 @@ def _get_inner_trie_from_prefix(trie, ngram_prefix):
     # `trie` at this point could be an int for the prefix's count,
     # or an actual trie that continues from the prefix.
     return trie
+
+
+def skipgrams_from_seq(seq, skip, n):
+    all_indices = OrderedDict()  # used an ordered set
+    for k in range(len(seq) - n + 1):
+        for indices in combinations(range(skip + n), n):
+            all_indices[tuple(i + k for i in indices)] = 0  # value 0 is meaningless
+    for indices in all_indices.keys():
+        try:
+            yield tuple(seq[i] for i in indices)
+        except IndexError:
+            pass
 
 
 def ngrams_from_seq(seq, n):
@@ -125,9 +138,7 @@ class Ngrams:
             occurs multiple times.
         """
         if not 1 <= len(ngram) <= self.order:
-            raise ValueError(
-                f"length of {ngram} is outside of [1, {self.order}]"
-            )
+            raise ValueError(f"length of {ngram} is outside of [1, {self.order}]")
         trie = self._tries[len(ngram)]
         for token in ngram[:-1]:
             trie = trie[token]
@@ -251,9 +262,7 @@ class Ngrams:
         elif order is None:
             orders = range(1, self.order + 1)
         else:
-            raise ValueError(
-                f"`order` must be an int or an iterable of int: {order}"
-            )
+            raise ValueError(f"`order` must be an int or an iterable of int: {order}")
         for n in orders:
             trie = self._tries[n]
             yield from _flattened_ngrams_with_counts(trie, prefix)
@@ -272,9 +281,7 @@ class Ngrams:
         """
         for other in others:
             if type(other) != Ngrams:
-                raise TypeError(
-                    f"arg must be an Ngrams instance: {type(other)}"
-                )
+                raise TypeError(f"arg must be an Ngrams instance: {type(other)}")
             order = range(1, min(other.order, self.order) + 1)
             for ngram, count in other.ngrams_with_counts(order=order):
                 self.add(ngram, count)
