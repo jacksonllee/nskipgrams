@@ -31,8 +31,8 @@ Table of contents:
 To initialize an empty collection of ngrams:
 
 ```python
->>> from ngrams import Ngrams
->>> char_ngrams = Ngrams(order=3)  # handles unigrams, bigrams, and trigrams
+>> > from ngrams import Ngrams
+>> > char_ngrams = Ngrams(n=3)  # handles unigrams, bigrams, and trigrams
 ```
 
 ### Adding Ngrams
@@ -67,85 +67,138 @@ uses to represent ngrams.
 To iterate through the collected ngrams:
 
 ```python
->>> for ngram, count in char_ngrams.ngrams_with_counts():
-...     print(ngram, count)
+>> > for ngram, count in char_ngrams.skipgrams_with_counts():
+    ...
+print(ngram, count)
 ...
-('m',) 1
-('y',) 3
-(' ',) 3
-('c',) 3
-('a',) 3
-('t',) 3
-('s',) 1
-('o',) 2
-('u',) 2
-('r',) 2
-('m', 'y') 1
-('y', ' ') 1
-('y', 'o') 2
-(' ', 'c') 3
-('c', 'a') 3
-('a', 't') 3
-('t', 's') 1
-('o', 'u') 2
-('u', 'r') 2
-('r', ' ') 2
-('m', 'y', ' ') 1
-('y', ' ', 'c') 1
-('y', 'o', 'u') 3
-(' ', 'c', 'a') 3
-('c', 'a', 't') 3
-('a', 't', 's') 1
-('o', 'u', 'r') 2
-('u', 'r', ' ') 2
-('r', ' ', 'c') 2
+('m',)
+1
+('y',)
+3
+(' ',)
+3
+('c',)
+3
+('a',)
+3
+('t',)
+3
+('s',)
+1
+('o',)
+2
+('u',)
+2
+('r',)
+2
+('m', 'y')
+1
+('y', ' ')
+1
+('y', 'o')
+2
+(' ', 'c')
+3
+('c', 'a')
+3
+('a', 't')
+3
+('t', 's')
+1
+('o', 'u')
+2
+('u', 'r')
+2
+('r', ' ')
+2
+('m', 'y', ' ')
+1
+('y', ' ', 'c')
+1
+('y', 'o', 'u')
+3
+(' ', 'c', 'a')
+3
+('c', 'a', 't')
+3
+('a', 't', 's')
+1
+('o', 'u', 'r')
+2
+('u', 'r', ' ')
+2
+('r', ' ', 'c')
+2
 ```
 
 To iterate with a specific order...
 
 ```python
->>> for ngram, count in char_ngrams.ngrams_with_counts(order=2):
-...     print(ngram, count)
+>> > for ngram, count in char_ngrams.skipgrams_with_counts(order=2):
+    ...
+print(ngram, count)
 ...
-('m', 'y') 1
-('y', ' ') 1
-('y', 'o') 2
-(' ', 'c') 3
-('c', 'a') 3
-('a', 't') 3
-('t', 's') 1
-('o', 'u') 2
-('u', 'r') 2
-('r', ' ') 2
+('m', 'y')
+1
+('y', ' ')
+1
+('y', 'o')
+2
+(' ', 'c')
+3
+('c', 'a')
+3
+('a', 't')
+3
+('t', 's')
+1
+('o', 'u')
+2
+('u', 'r')
+2
+('r', ' ')
+2
 ```
 
 ...or with a particular prefix:
 
 ```python
->>> for ngram, count in char_ngrams.ngrams_with_counts(prefix=("y",)):
-...     print(ngram, count)
+>> > for ngram, count in char_ngrams.skipgrams_with_counts(prefix=("y",)):
+    ...
+print(ngram, count)
 ...
-('y',) 3
-('y', ' ') 1
-('y', 'o') 2
-('y', ' ', 'c') 1
-('y', 'o', 'u') 3
->>>
->>> for ngram, count in char_ngrams.ngrams_with_counts(prefix=("y", "o")):
-...     print(ngram, count)
+('y',)
+3
+('y', ' ')
+1
+('y', 'o')
+2
+('y', ' ', 'c')
+1
+('y', 'o', 'u')
+3
+>> >
+>> > for ngram, count in char_ngrams.skipgrams_with_counts(prefix=("y", "o")):
+    ...
+print(ngram, count)
 ...
-('y', 'o') 2
-('y', 'o', 'u') 3
+('y', 'o')
+2
+('y', 'o', 'u')
+3
 ```
 
 ...or with both order and prefix specified:
 
 ```python
->>> for ngram, count in char_ngrams.ngrams_with_counts(order=2, prefix=("y",)):
-...     print(ngram, count)
+>> > for ngram, count in char_ngrams.skipgrams_with_counts(order=2, prefix=("y",)):
+    ...
+print(ngram, count)
 ...
-('y', ' ') 1
-('y', 'o') 2
+('y', ' ')
+1
+('y', 'o')
+2
 ```
 
 ### Accessing Counts
@@ -178,19 +231,21 @@ True
 ### Combining Collections of Ngrams
 
 To combine collections of ngrams (e.g., when you process data sources in parallel
-and have multiple `Ngrams` objects): 
+and have multiple `Ngrams` objects):
 
 ```python
->>> char_ngrams1 = Ngrams(order=2); char_ngrams1.add_from_seq("my cat")
->>> set(char_ngrams1.ngrams_with_counts(order=2))
+>> > char_ngrams1 = Ngrams(order=2);
+char_ngrams1.add_from_seq("my cat")
+>> > set(char_ngrams1.skipgrams_with_counts(order=2))
 {((' ', 'c'), 1),
  (('a', 't'), 1),
  (('c', 'a'), 1),
  (('m', 'y'), 1),
  (('y', ' '), 1)}
->>>
->>> char_ngrams2 = Ngrams(order=2); char_ngrams2.add_from_seq("your cats")
->>> set(char_ngrams2.ngrams_with_counts(order=2))
+>> >
+>> > char_ngrams2 = Ngrams(order=2);
+char_ngrams2.add_from_seq("your cats")
+>> > set(char_ngrams2.skipgrams_with_counts(order=2))
 {((' ', 'c'), 1),
  (('a', 't'), 1),
  (('c', 'a'), 1),
@@ -199,9 +254,10 @@ and have multiple `Ngrams` objects):
  (('t', 's'), 1),
  (('u', 'r'), 1),
  (('y', 'o'), 1)}
->>>
->>> char_ngrams3 = Ngrams(order=2); char_ngrams3.add_from_seq("her cats")
->>> set(char_ngrams3.ngrams_with_counts(order=2))
+>> >
+>> > char_ngrams3 = Ngrams(order=2);
+char_ngrams3.add_from_seq("her cats")
+>> > set(char_ngrams3.skipgrams_with_counts(order=2))
 {((' ', 'c'), 1),
  (('a', 't'), 1),
  (('c', 'a'), 1),
@@ -209,9 +265,10 @@ and have multiple `Ngrams` objects):
  (('h', 'e'), 1),
  (('r', ' '), 1),
  (('t', 's'), 1)}
->>>
->>> char_ngrams1.combine(char_ngrams2, char_ngrams3)  # `combine` takes as many Ngrams objects as desired
->>> set(char_ngrams1.ngrams_with_counts(order=2))
+>> >
+>> > char_ngrams1.combine(char_ngrams2,
+                          char_ngrams3)  # `combine` takes as many Ngrams objects as desired
+>> > set(char_ngrams1.skipgrams_with_counts(order=2))
 {((' ', 'c'), 3),
  (('a', 't'), 3),
  (('c', 'a'), 3),
@@ -246,16 +303,20 @@ another common usage in computational linguistics and NLP is to have
 segmented phrases/sentences as sequences and word-based ngrams:
 
 ```python
->>> from ngrams import Ngrams
->>> word_ngrams = Ngrams(order=2)
->>> word_ngrams.add_from_seq(("in", "the", "beginning"))
->>> word_ngrams.add_from_seq(("in", "the", "end"))
->>> for ngram, count in word_ngrams.ngrams_with_counts(order=2):
-...     print(ngram, count)
+>> > from ngrams import Ngrams
+>> > word_ngrams = Ngrams(n=2)
+>> > word_ngrams.add_from_seq(("in", "the", "beginning"))
+>> > word_ngrams.add_from_seq(("in", "the", "end"))
+>> > for ngram, count in word_ngrams.skipgrams_with_counts(order=2):
+    ...
+print(ngram, count)
 ...
-('in', 'the') 2
-('the', 'beginning') 1
-('the', 'end') 1
+('in', 'the')
+2
+('the', 'beginning')
+1
+('the', 'end')
+1
 ```
 
 ## Installation

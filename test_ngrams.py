@@ -1,3 +1,4 @@
+import itertools
 import os
 import re
 
@@ -8,7 +9,7 @@ import ngrams
 
 @pytest.fixture
 def ngrams_for_testing():
-    test_ngrams = ngrams.Ngrams(3)
+    test_ngrams = ngrams.Ngrams(n=3)
     seqs = [
         "ab",
         "abc",
@@ -35,20 +36,54 @@ def test_ngrams_from_seq(seq, n, expected):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "seq, n, skip, expected",
+    [
+        # Example from https://en.wikipedia.org/wiki/N-gram#Skip-gram
+        (
+            "the rain in Spain falls mainly on the plain".split(),
+            2,
+            1,
+            [
+                ("the", "rain"),
+                ("the", "in"),
+                ("rain", "in"),
+                ("rain", "Spain"),
+                ("in", "Spain"),
+                ("in", "falls"),
+                ("Spain", "falls"),
+                ("Spain", "mainly"),
+                ("falls", "mainly"),
+                ("falls", "on"),
+                ("mainly", "on"),
+                ("mainly", "the"),
+                ("on", "the"),
+                ("on", "plain"),
+                ("the", "plain"),
+            ],
+        ),
+    ],
+)
+def test_skipgrams_from_seq(seq, n, skip, expected):
+    actual = list(ngrams.skipgrams_from_seq(seq, n, skip))
+    assert actual == expected
+
+
 @pytest.mark.parametrize("order", [-1, 0, 1.5])
 def test_weird_order(order):
     with pytest.raises(ValueError):
-        ngrams.Ngrams(order)
+        ngrams.Ngrams(n=order)
 
 
 @pytest.mark.parametrize("ngram", ["", "abcd"])
 def test_add_weird_ngram_length(ngram):
     with pytest.raises(ValueError):
-        ngrams.Ngrams(3).add(ngram)
+        ngrams.Ngrams(n=3).add(ngram)
 
 
 @pytest.mark.parametrize(
-    "ngram, expected", [("ab", 7), ("def", 2), ("random", 0), ("foo", 0)],
+    "ngram, expected",
+    [("ab", 7), ("def", 2), ("random", 0), ("foo", 0)],
 )
 def test_count(ngram, expected, ngrams_for_testing):
     actual = ngrams_for_testing.count(ngram)
@@ -61,22 +96,6 @@ def test_count(ngram, expected, ngrams_for_testing):
 )
 def test___contains__(ngram, expected, ngrams_for_testing):
     actual = ngram in ngrams_for_testing
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
-    "order, unique, expected",
-    [
-        (1, True, 6),
-        (1, False, 32),
-        (2, True, 5),
-        (2, False, 25),
-        (3, True, 4),
-        (3, False, 18),
-    ],
-)
-def test_total_count(order, unique, expected, ngrams_for_testing):
-    actual = ngrams_for_testing.total_count(order, unique)
     assert actual == expected
 
 
@@ -113,62 +132,6 @@ def test_total_count(order, unique, expected, ngrams_for_testing):
                 (("d", "e", "f"), 2),
             },
         ),
-        (
-            None,
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-                (("a", "b", "c"), 6),
-                (("b", "c", "d"), 5),
-                (("c", "d", "e"), 5),
-                (("d", "e", "f"), 2),
-            },
-        ),
-        (
-            (1, 2, 3),
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-                (("a", "b", "c"), 6),
-                (("b", "c", "d"), 5),
-                (("c", "d", "e"), 5),
-                (("d", "e", "f"), 2),
-            },
-        ),
-        (
-            (1, 2),
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-            },
-        ),
     ],
 )
 def test_ngrams_with_counts(order, expected, ngrams_for_testing):
@@ -193,78 +156,8 @@ def test_ngrams_with_counts(order, expected, ngrams_for_testing):
         (3, ("a", "b", "c", "d"), set()),
     ],
 )
-def test_ngrams_with_counts_with_prefix(
-    order, prefix, expected, ngrams_for_testing
-):
-    actual = set(ngrams_for_testing.ngrams_with_counts(order, prefix))
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
-    "order, expected",
-    [
-        (
-            (1, 2),
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-            },
-        ),
-        (
-            (1, 2, 3),
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-                (("a", "b", "c"), 6),
-                (("b", "c", "d"), 5),
-                (("c", "d", "e"), 5),
-                (("d", "e", "f"), 2),
-            },
-        ),
-        (
-            None,
-            {
-                (("a",), 7),
-                (("b",), 7),
-                (("c",), 6),
-                (("d",), 5),
-                (("e",), 5),
-                (("f",), 2),
-                (("a", "b"), 7),
-                (("b", "c"), 6),
-                (("c", "d"), 5),
-                (("d", "e"), 5),
-                (("e", "f"), 2),
-                (("a", "b", "c"), 6),
-                (("b", "c", "d"), 5),
-                (("c", "d", "e"), 5),
-                (("d", "e", "f"), 2),
-            },
-        ),
-    ],
-)
-def test_ngrams_with_counts_with_complex_order(
-    order, expected, ngrams_for_testing
-):
-    actual = set(ngrams_for_testing.ngrams_with_counts(order))
+def test_ngrams_with_counts_with_prefix(order, prefix, expected, ngrams_for_testing):
+    actual = set(ngrams_for_testing.ngrams_with_counts(order, prefix=prefix))
     assert actual == expected
 
 
@@ -290,9 +183,12 @@ def test_version_number_match_with_changelog():
 
 
 def test_combine():
-    char_ngrams1 = ngrams.Ngrams(order=2)
+    char_ngrams1 = ngrams.Ngrams(n=2)
     char_ngrams1.add_from_seq("my cat")
-    assert set(char_ngrams1.ngrams_with_counts()) == {
+    all_ngrams_with_counts = itertools.chain(
+        char_ngrams1.ngrams_with_counts(n=1), char_ngrams1.ngrams_with_counts(n=2)
+    )
+    assert set(all_ngrams_with_counts) == {
         (("c",), 1),
         (("t",), 1),
         ((" ",), 1),
@@ -306,9 +202,12 @@ def test_combine():
         (("y", " "), 1),
     }
 
-    char_ngrams2 = ngrams.Ngrams(order=2)
+    char_ngrams2 = ngrams.Ngrams(n=2)
     char_ngrams2.add_from_seq("your cats")
-    assert set(char_ngrams2.ngrams_with_counts()) == {
+    all_ngrams_with_counts = itertools.chain(
+        char_ngrams2.ngrams_with_counts(n=1), char_ngrams2.ngrams_with_counts(n=2)
+    )
+    assert set(all_ngrams_with_counts) == {
         (("c",), 1),
         (("y",), 1),
         (("s",), 1),
@@ -328,9 +227,12 @@ def test_combine():
         (("y", "o"), 1),
     }
 
-    char_ngrams3 = ngrams.Ngrams(order=2)
+    char_ngrams3 = ngrams.Ngrams(n=2)
     char_ngrams3.add_from_seq("her cats")
-    assert set(char_ngrams3.ngrams_with_counts()) == {
+    all_ngrams_with_counts = itertools.chain(
+        char_ngrams3.ngrams_with_counts(n=1), char_ngrams3.ngrams_with_counts(n=2)
+    )
+    assert set(all_ngrams_with_counts) == {
         (("s",), 1),
         (("t",), 1),
         (("a",), 1),
@@ -349,7 +251,10 @@ def test_combine():
     }
 
     char_ngrams1.combine(char_ngrams2, char_ngrams3)
-    assert set(char_ngrams1.ngrams_with_counts()) == {
+    all_ngrams_with_counts = itertools.chain(
+        char_ngrams1.ngrams_with_counts(n=1), char_ngrams1.ngrams_with_counts(n=2)
+    )
+    assert set(all_ngrams_with_counts) == {
         (("u",), 1),
         (("r",), 2),
         (("h",), 1),

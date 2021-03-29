@@ -1,8 +1,8 @@
-"""ngrams: A lightweight Python package to handle ngrams
+"""nskipgrams: A lightweight Python package to handle ngrams and skipgrams
 
 Author: Jackson L. Lee <jacksonlunlee@gmail.com>
 License: MIT License
-Source: https://github.com/jacksonllee/ngrams
+Source: https://github.com/jacksonllee/nskipgrams
 """
 
 from collections import defaultdict, OrderedDict
@@ -65,10 +65,12 @@ def _get_inner_trie_from_prefix(trie, ngram_prefix):
     return trie
 
 
-def skipgrams_from_seq(seq, skip, n):
+def skipgrams_from_seq(seq, n, skip):
+    _validate_n(n, upper_bound=len(seq))
+    _validate_skip(skip, upper_bound=len(seq))
     all_indices = OrderedDict()  # used an ordered set
     for k in range(len(seq) - n + 1):
-        for indices in combinations(range(skip + n), n):
+        for indices in combinations(range(min(skip + n, len(seq))), n):
             all_indices[tuple(i + k for i in indices)] = 0  # value 0 is meaningless
     for indices in all_indices.keys():
         try:
@@ -94,305 +96,177 @@ def ngrams_from_seq(seq, n):
     yield from zip(*(seq[i:] for i in range(n)))
 
 
-class _NSkipgrams:
+def _validate_n(n, upper_bound=None):
+    if type(n) != int or n < 1:
+        raise ValueError(f"n must be an integer >= 1: {n}")
+    elif upper_bound is not None and n > upper_bound:
+        raise ValueError(f"n is outside of [1, {upper_bound}]: {n}")
+    return n
 
+
+def _validate_skip(skip, upper_bound=None):
+    if type(skip) != int or skip < 0:
+        raise ValueError(f"skip must be an integer >= 0: {skip}")
+    elif upper_bound is not None and skip > upper_bound:
+        raise ValueError(f"skip is outside of [0, {upper_bound}]: {skip}")
+    return skip
+
+
+class Skipgrams:
     def __init__(self, n, skip=0):
-        if type(n) != int or n < 1:
-            raise ValueError(f"n must be an integer >= 1: {n}")
-        if type(skip) != int or skip < 0:
-            raise ValueError(f"skip must be an integer >= 0: {skip}")
-        self.n = n
-        self.skip = skip
+        self.n = _validate_n(n)
+        self.skip = _validate_skip(skip)
         self._tries = {(i + 1, k): _trie() for i in range(n) for k in range(skip + 1)}
 
-    def _add(self, ngram, skip=0, count=1):
-        if not 1 <= len(ngram) <= self.n:
-            raise ValueError(f"length of {ngram} is outside of [1, {self.n}]")
-        if not 0 <= skip <= self.skip:
-            raise ValueError(f"skip is outside of [0, {self.skip}]: {skip}")
-        trie = self._tries[(len(ngram), skip)]
-        for token in ngram[:-1]:
-            trie = trie[token]
-        last_token = ngram[-1]
-        if last_token in trie:
-            trie[last_token] += count
-        else:
-            trie[last_token] = count
-
-    def _add_from_seq(self, seq, count=1):
-        for n in range(1, min(self.n, len(seq)) + 1):
-            for skip in range(0, min(self.skip + 1, len(seq) - 1)):
-                for ngram in skipgrams_from_seq(seq, skip, n):
-                    self._add(ngram, skip=skip, count=count)
-
-    def _count(self, ngram, skip=0):
-        if not 0 <= skip <= self.skip:
-            raise ValueError(f"skip is outside of [0, {self.skip}]: {skip}")
-        if len(ngram) > self.n:
-            return 0
-        trie = self._tries[(len(ngram), skip)]
-        count_ = _get_inner_trie_from_prefix(trie, ngram)
-        if isinstance(count_, dict) or not count_:
-            return 0
-        else:
-            return count_
-
-    def __contains__(self, ngram):
-        for skip in range(self.skip + 1):
-            c = self._count(ngram, skip=skip)
-            if c:
-                return c
-        else:
-            return 0
-
-    def total_count(self, order=None, unique=False):
-        ngrams_with_counts = self.ngrams_with_counts(order)
-        if unique:
-            return sum(1 for _ in ngrams_with_counts)
-        else:
-            return sum(count for _, count in ngrams_with_counts)
-
-    def ngrams_with_counts(self, order=None, prefix=None):
-        """Yield the pairs of ngrams and counts for the given order.
+    def add(self, skipgram, skip=0, count=1):
+        """Add a skipgram.
 
         Parameters
         ----------
-        order : int or iterable of int, optional
-            Either an integer for a single order (e.g., `2`),
-            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
-            If not provided or if it is `None`, all orders of
-            (1, 2, ..., `self.order`) handled by this collection of ngrams
-            are used.
-        prefix : iterable, optional
-            If provided, all yielded ngrams start with this prefix.
-
-        Yields
-        ------
-        tuple, int
-            An ngram (tuple) and its count (int)
-        """
-        if type(order) == int:
-            orders = [order]
-        elif hasattr(order, "__iter__"):
-            orders = list(order)
-            if not all(type(x) == int for x in orders):
-                raise ValueError(f"all orders must be integers: {orders}")
-        elif order is None:
-            orders = range(1, self.n + 1)
-        else:
-            raise ValueError(f"`order` must be an int or an iterable of int: {order}")
-        for n in orders:
-            trie = self._tries[n]
-            yield from _flattened_ngrams_with_counts(trie, prefix)
-
-    def combine(self, *others):
-        """Combine collections of ngrams in-place.
-
-        Parameters
-        ----------
-        *others : iterable of Ngrams
-
-        Raises
-        ------
-        TypeError
-            If any item in `others` is not an `Ngrams` instance.
-        """
-        for other in others:
-            if type(other) != Ngrams:
-                raise TypeError(f"arg must be an Ngrams instance: {type(other)}")
-            order = range(1, min(other.n, self.n) + 1)
-            for ngram, count in other.ngrams_with_counts(order=order):
-                self._add(ngram, count)
-
-
-class Ngrams:
-    """A collection of ngrams.
-
-    Once initialized, ngrams can be added. The ngrams are internally stored
-    in tries for memory efficiency. This class makes it convenient to
-    keep track and access counts of ngrams.
-
-    Attributes
-    ----------
-    order : int
-        This collection handles ngrams where n is from {1, 2, ..., order}.
-    """
-
-    def __init__(self, order):
-        """Initialize the `Ngrams` object.
-
-        Parameters
-        ----------
-        order : int
-            This collection handles ngrams where n is from {1, 2, ..., order}.
-
-        Raises
-        ------
-        ValueError
-            If `order` is not an integer >= 1.
-        """
-        if order < 1 or type(order) != int:
-            raise ValueError(f"order must be an integer >= 1: {order}")
-        self.order = order
-        self._tries = {(i + 1): _trie() for i in range(order)}
-
-    def add(self, ngram, count=1):
-        """Add an ngram.
-
-        Parameters
-        ----------
-        ngram : iterable
-            ngram to add
+        skipgram : tuple
+            Skipgram to add.
+        skip : int
+            Number of skips this skipgram has.
         count : int, optional
-            Count for the ngram being added. This is for the convenience of
-            not having to call this method multiple times if this ngram
-            occurs multiple times.
+            Count for the skipgram, for the convenience of not having to call this
+            method multiple times if this skipgram occurs multiple times in your data.
         """
-        if not 1 <= len(ngram) <= self.order:
-            raise ValueError(f"length of {ngram} is outside of [1, {self.order}]")
-        trie = self._tries[len(ngram)]
-        for token in ngram[:-1]:
+        self._add(skipgram, skip, count, validated=False)
+
+    def _add(self, skipgram, skip, count, validated):
+        if not validated:
+            if not 1 <= len(skipgram) <= self.n:
+                raise ValueError(f"length of {skipgram} is outside of [1, {self.n}]")
+            _validate_skip(skip, self.skip)
+        trie = self._tries[(len(skipgram), skip)]
+        for token in skipgram[:-1]:
             trie = trie[token]
-        last_token = ngram[-1]
+        last_token = skipgram[-1]
         if last_token in trie:
             trie[last_token] += count
         else:
             trie[last_token] = count
 
     def add_from_seq(self, seq, count=1):
-        """Add ngrams from a sequence.
+        """Add skipgrams from a sequence.
 
         Parameters
         ----------
         seq : iterable
             A sequence (e.g., a list or tuple of strings as a sentence with
-            words, or a string as a word with characters) from which ngrams
-            are extracted
+            words, or a string as a word with characters) from which skipgrams
+            are extracted.
         count : int, optional
-            Count for the sequence being added. This is for the convenience of
-            not having to call this method multiple times if this sequence
-            occurs multiple times.
+            Count for the skipgram, for the convenience of not having to call this
+            method multiple times if this skipgram occurs multiple times in your data.
         """
-        for n in range(1, min(self.order, len(seq)) + 1):
-            for ngram in ngrams_from_seq(seq, n):
-                self.add(ngram, count=count)
+        for n in range(1, min(self.n, len(seq)) + 1):
+            for skip in range(0, max(min(self.skip, len(seq) - n) + 1, 1)):
+                for ngram in skipgrams_from_seq(seq, n, skip):
+                    self._add(ngram, skip=skip, count=count, validated=True)
 
-    def count(self, ngram):
-        """Return the ngram's count.
+    def count(self, skipgram, skip=0):
+        """Return the skipgram's count.
 
-        If the ngram is longer than the order of this ngram collection,
-        or if the ngram isn't found in this collection,
-        then 0 (zero) is returned.
+        If the skipgram is longer than the order of this skipgram collection,
+        or if the skipgram isn't found in this collection, then 0  is returned.
 
         Parameters
         ----------
-        ngram : iterable
+        skipgram : tuple
+            Skipgram to get the count for.
+        skip : int
+            Number of skips this skipgram has.
 
         Returns
         -------
         int
         """
-        if len(ngram) > self.order:
+        _validate_skip(skip, self.skip)
+        if len(skipgram) > self.n:
             return 0
-        trie = self._tries[len(ngram)]
-        count_ = _get_inner_trie_from_prefix(trie, ngram)
+        trie = self._tries[(len(skipgram), skip)]
+        count_ = _get_inner_trie_from_prefix(trie, skipgram)
         if isinstance(count_, dict) or not count_:
             return 0
         else:
             return count_
 
-    def __contains__(self, ngram):
-        """Determine if the ngram is found in this collection.
+    def __contains__(self, skipgram):
+        """Determine if the skipgram is found in this collection.
 
-        Note that this function returns True if and only if the ngram _exactly_
-        matches one of the existing ones in the collection.
-        Other kinds of matching (e.g., prefix or suffix) all return False.
+        Note that this function returns ``True`` if and only if the skipgram exactly
+        matches an existing one in the collection.
 
         Parameters
         ----------
-        ngram : iterable
+        skipgram : tuple
+            Skipgram to check membership for.
 
         Returns
         -------
         bool
         """
-        return bool(self.count(ngram))
-
-    def total_count(self, order=None, unique=False):
-        """Return the total count of all ngrams for the given order.
-
-        Parameters
-        ----------
-        order : int or iterable of int, optional
-            Either an integer for a single order (e.g., `2`),
-            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
-            If not provided or if it is `None`, all orders of
-            (1, 2, ..., `self.order`) handled by this collection of ngrams
-            are used.
-        unique : bool
-            If False (the default), the returned number is the sum of all
-            occurrences of the relevant ngrams.
-            If True, the returned number is the number of _unique_ ngrams
-            of the given order.
-
-        Returns
-        -------
-        int
-        """
-        ngrams_with_counts = self.ngrams_with_counts(order)
-        if unique:
-            return sum(1 for _ in ngrams_with_counts)
+        for skip in range(self.skip + 1):
+            c = self.count(skipgram, skip=skip)
+            if c:
+                return c
         else:
-            return sum(count for _, count in ngrams_with_counts)
+            return 0
 
-    def ngrams_with_counts(self, order=None, prefix=None):
-        """Yield the pairs of ngrams and counts for the given order.
+    def skipgrams_with_counts(self, n, skip=0, prefix=None):
+        """Yield pairs of skipgrams and counts.
 
         Parameters
         ----------
-        order : int or iterable of int, optional
-            Either an integer for a single order (e.g., `2`),
-            or an iterable of integers for multiple orders (e.g., `(1, 2)`).
-            If not provided or if it is `None`, all orders of
-            (1, 2, ..., `self.order`) handled by this collection of ngrams
-            are used.
+        n : int
+        skip : int
+            Number of skips to yield skipgrams for.
         prefix : iterable, optional
-            If provided, all yielded ngrams start with this prefix.
+            If provided, all yielded skipgrams start with this prefix.
 
         Yields
         ------
         tuple, int
-            An ngram (tuple) and its count (int)
+            A skipgram (tuple) and its count (int)
         """
-        if type(order) == int:
-            orders = [order]
-        elif hasattr(order, "__iter__"):
-            orders = list(order)
-            if not all(type(x) == int for x in orders):
-                raise ValueError(f"all orders must be integers: {orders}")
-        elif order is None:
-            orders = range(1, self.order + 1)
-        else:
-            raise ValueError(f"`order` must be an int or an iterable of int: {order}")
-        for n in orders:
-            trie = self._tries[n]
-            yield from _flattened_ngrams_with_counts(trie, prefix)
+        yield from self._skipgrams_with_counts(n, skip, prefix, validated=False)
+
+    def _skipgrams_with_counts(self, n, skip, prefix, validated):
+        if not validated:
+            _validate_n(n, upper_bound=self.n)
+            _validate_skip(skip, upper_bound=self.skip)
+        trie = self._tries[(n, skip)]
+        yield from _flattened_ngrams_with_counts(trie, prefix)
 
     def combine(self, *others):
-        """Combine collections of ngrams in-place.
+        """Combine collections of skipgrams in-place.
 
         Parameters
         ----------
-        *others : iterable of Ngrams
+        *others : iterable of ``Skipgrams`` instances
 
         Raises
         ------
         TypeError
-            If any item in `others` is not an `Ngrams` instance.
+            If any item in `others` is not a ``Skipgrams`` instance.
         """
         for other in others:
-            if type(other) != Ngrams:
-                raise TypeError(f"arg must be an Ngrams instance: {type(other)}")
-            order = range(1, min(other.order, self.order) + 1)
-            for ngram, count in other.ngrams_with_counts(order=order):
-                self.add(ngram, count)
+            if not isinstance(other, Skipgrams):
+                raise TypeError(f"arg must be a Skipgrams instance: {type(other)}")
+            ns = range(1, min(other.n, self.n) + 1)
+            skips = range(0, min(other.skip, self.skip) + 1)
+            for n in ns:
+                for skip in skips:
+                    for ngram, count in other._skipgrams_with_counts(
+                        n, skip, prefix=None, validated=True
+                    ):
+                        self.add(ngram, skip, count)
+
+
+class Ngrams(Skipgrams):
+    def __init__(self, n):
+        super().__init__(n, skip=0)
+
+    def ngrams_with_counts(self, n, prefix=None):
+        yield from super(Ngrams, self).skipgrams_with_counts(n, skip=0, prefix=prefix)
