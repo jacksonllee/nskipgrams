@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [0.3.0] - 2021-03-28
+
+### Added
 - Added the new class `Skipgrams` (which `Ngrams` subclasses from now).
 
 ### Changed
@@ -14,14 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In various methods of `Ngrams`, the argument name `order` has been changed
   into `n`.
 
-### Deprecated
 ### Removed
 - Removed the `total_count` method of `Ngrams`.
   Now that `Skipgrams` is added,
   `total_count` would be too confusing and/or not of much use in practice.
-
-### Fixed
-### Security
 
 ## [0.2.1] - 2020-09-06
 
