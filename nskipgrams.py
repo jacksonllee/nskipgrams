@@ -1,4 +1,4 @@
-"""nskipgrams: A lightweight Python package to handle ngrams and skipgrams
+"""nskipgrams: A lightweight Python package to work with ngrams and skipgrams
 
 Author: Jackson L. Lee <jacksonlunlee@gmail.com>
 License: MIT License
@@ -10,7 +10,7 @@ from itertools import combinations
 import pkg_resources
 
 
-__version__ = pkg_resources.get_distribution("ngrams").version
+__version__ = pkg_resources.get_distribution("nskipgrams").version
 
 
 def _trie():
@@ -113,6 +113,8 @@ def _validate_skip(skip, upper_bound=None):
 
 
 class Skipgrams:
+    """A collection of skipgrams."""
+
     def __init__(self, n, skip=0):
         self.n = _validate_n(n)
         self.skip = _validate_skip(skip)
@@ -242,6 +244,10 @@ class Skipgrams:
     def combine(self, *others):
         """Combine collections of skipgrams in-place.
 
+        If any new skipgram collections' ``n`` and/or ``skip`` is larger than those
+        of the current collection, then the current collection's ``n`` and/or ``skip``
+        will be coerced to enlarge so that the new skipgrams can fit.
+
         Parameters
         ----------
         *others : iterable of ``Skipgrams`` instances
@@ -254,17 +260,25 @@ class Skipgrams:
         for other in others:
             if not isinstance(other, Skipgrams):
                 raise TypeError(f"arg must be a Skipgrams instance: {type(other)}")
-            ns = range(1, min(other.n, self.n) + 1)
-            skips = range(0, min(other.skip, self.skip) + 1)
-            for n in ns:
-                for skip in skips:
+            if other.n > self.n:
+                self.n = other.n
+            if other.skip > self.skip:
+                self.skip = other.skip
+            for n in range(1, other.n + 1):
+                for skip in range(0, other.skip + 1):
                     for ngram, count in other._skipgrams_with_counts(
-                        n, skip, prefix=None, validated=True
+                        n=n, skip=skip, prefix=None, validated=True
                     ):
-                        self.add(ngram, skip, count)
+                        self._add(ngram, skip, count, validated=True)
 
 
 class Ngrams(Skipgrams):
+    """A collection of ngrams.
+
+    Ngrams are a special case of skipgrams, where skip = 0. This class has methods
+    inherited from ``Skipgrams``.
+    """
+
     def __init__(self, n):
         super().__init__(n, skip=0)
 

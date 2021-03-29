@@ -4,12 +4,12 @@ import re
 
 import pytest
 
-import ngrams
+import nskipgrams
 
 
 @pytest.fixture
 def ngrams_for_testing():
-    test_ngrams = ngrams.Ngrams(n=3)
+    test_ngrams = nskipgrams.Ngrams(n=3)
     seqs = [
         "ab",
         "abc",
@@ -32,7 +32,7 @@ def ngrams_for_testing():
     ],
 )
 def test_ngrams_from_seq(seq, n, expected):
-    actual = list(ngrams.ngrams_from_seq(seq, n))
+    actual = list(nskipgrams.ngrams_from_seq(seq, n))
     assert actual == expected
 
 
@@ -65,20 +65,20 @@ def test_ngrams_from_seq(seq, n, expected):
     ],
 )
 def test_skipgrams_from_seq(seq, n, skip, expected):
-    actual = list(ngrams.skipgrams_from_seq(seq, n, skip))
+    actual = list(nskipgrams.skipgrams_from_seq(seq, n, skip))
     assert actual == expected
 
 
 @pytest.mark.parametrize("order", [-1, 0, 1.5])
 def test_weird_order(order):
     with pytest.raises(ValueError):
-        ngrams.Ngrams(n=order)
+        nskipgrams.Ngrams(n=order)
 
 
 @pytest.mark.parametrize("ngram", ["", "abcd"])
 def test_add_weird_ngram_length(ngram):
     with pytest.raises(ValueError):
-        ngrams.Ngrams(n=3).add(ngram)
+        nskipgrams.Ngrams(n=3).add(ngram)
 
 
 @pytest.mark.parametrize(
@@ -175,15 +175,15 @@ def test_version_number_match_with_changelog():
     version_in_changelog = (
         re.search(r"\[\d+\.\d+\.\d+\]", changelog).group().strip("[]")
     )
-    assert ngrams.__version__ == version_in_changelog, (
-        f"Make sure both __version__ ({ngrams.__version__}) and "
+    assert nskipgrams.__version__ == version_in_changelog, (
+        f"Make sure both __version__ ({nskipgrams.__version__}) and "
         f"CHANGELOG ({version_in_changelog}) "
         "are updated to match the latest version number"
     )
 
 
 def test_combine():
-    char_ngrams1 = ngrams.Ngrams(n=2)
+    char_ngrams1 = nskipgrams.Ngrams(n=2)
     char_ngrams1.add_from_seq("my cat")
     all_ngrams_with_counts = itertools.chain(
         char_ngrams1.ngrams_with_counts(n=1), char_ngrams1.ngrams_with_counts(n=2)
@@ -202,7 +202,7 @@ def test_combine():
         (("y", " "), 1),
     }
 
-    char_ngrams2 = ngrams.Ngrams(n=2)
+    char_ngrams2 = nskipgrams.Ngrams(n=2)
     char_ngrams2.add_from_seq("your cats")
     all_ngrams_with_counts = itertools.chain(
         char_ngrams2.ngrams_with_counts(n=1), char_ngrams2.ngrams_with_counts(n=2)
@@ -227,7 +227,7 @@ def test_combine():
         (("y", "o"), 1),
     }
 
-    char_ngrams3 = ngrams.Ngrams(n=2)
+    char_ngrams3 = nskipgrams.Ngrams(n=2)
     char_ngrams3.add_from_seq("her cats")
     all_ngrams_with_counts = itertools.chain(
         char_ngrams3.ngrams_with_counts(n=1), char_ngrams3.ngrams_with_counts(n=2)
