@@ -13,6 +13,10 @@ nskipgrams
    :target: https://circleci.com/gh/jacksonllee/nskipgrams/tree/main
    :alt: CircleCI Build
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4002095.svg
+    :target: https://doi.org/10.5281/zenodo.4002095
+    :alt: DOI
+
 ``nskipgrams`` is a lightweight Python package to work with ngrams and skipgrams.
 Fields of study using ngrams and skipgrams from sequential data, especially
 computational linguistics and natural language processing, will find
@@ -269,6 +273,21 @@ The class ``Skipgrams`` works the same as ``Ngrams``, with the following differe
 
 The function ``skipgrams_from_seq`` works the same as ``ngrams_from_seq``, but has
 the ``skip`` keyword argument (in addition to ``seq`` and ``n``).
+
+Citation
+--------
+
+Lee, Jackson L. 2021. nskipgrams: A lightweight Python package to work with ngrams and skipgrams. https://doi.org/10.5281/zenodo.4002095
+
+.. code-block:: latex
+
+    @software{leengrams,
+      author       = {Jackson L. Lee},
+      title        = {nskipgrams: A lightweight Python package to work with ngrams and skipgrams},
+      year         = 2021,
+      doi          = {10.5281/zenodo.4002095},
+      url          = {https://doi.org/10.5281/zenodo.4002095}
+    }
 
 License
 -------
