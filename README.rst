@@ -9,8 +9,8 @@ nskipgrams
    :target: https://pypi.python.org/pypi/nskipgrams
    :alt: Supported Python versions
 
-.. image:: https://circleci.com/gh/jacksonllee/nskiprams/tree/main.svg?style=svg
-   :target: https://circleci.com/gh/jacksonllee/nskipgrams/tree/main
+.. image:: https://circleci.com/gh/jacksonllee/nskipgrams.svg?style=shield
+   :target: https://circleci.com/gh/jacksonllee/nskipgrams
    :alt: CircleCI Build
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4002095.svg
