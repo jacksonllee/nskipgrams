@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools >= 65.3.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nskipgrams"
+version = "0.4.0"
+description = "A lightweight Python package to work with ngrams and skipgrams"
+readme = "README.rst"
+requires-python = ">= 3.7.*"
+license = { text = "MIT License" }
+authors = [ { name = "Jackson L. Lee", email = "jacksonlunlee@gmail.com" } ]
+keywords = [
+    "computational linguistics",
+    "natural language processing",
+    "NLP",
+    "linguistics",
+    "language",
+    "ngrams",
+    "skipgrams",
+]
+dependencies = [
+    'importlib-metadata >= 1.0; python_version < "3.8"',
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: General",
+    "Topic :: Text Processing :: Indexing",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+[project.urls]
+Homepage = "https://github.com/jacksonllee/nskipgrams"
+
+[tool.setuptools]
+zip-safe = false
+py-modules = ["nskipgrams"]
+
+[tool.pytest.ini_options]
+addopts = "-vv --durations=0"
+testpaths = ["test_nskipgrams.py"]

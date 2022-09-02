@@ -1,32 +1,23 @@
 version: 2.1
 
 orbs:
-  python: circleci/python@1.2.0
+  win: circleci/windows@5.0
 
 jobs:
   pre-build:
-    description: Install and run a Python standalone package
+    description: A check that needs to be done on only one supported Python version
     parameters:
-      command-name:
-        type: string
       command-run:
         type: string
     docker:
-      - image: cimg/python:3.9
+      # Pick the highest Python 3.x version that the library is known to support
+      - image: cimg/python:3.10
         #auth:
         #  username: $DOCKERHUB_USERNAME
         #  password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
-          name: Create custom requirements
-          command: grep << parameters.command-name >> dev-requirements.txt > << parameters.command-name >>-dev-requirements.txt
-      - python/install-packages:
-          pkg-manager: pip
-          pip-dependency-file: << parameters.command-name >>-dev-requirements.txt
-          cache-version: << parameters.command-name >>-v1
-      - run:
-          working_directory: ~/
           command: << parameters.command-run >>
 
   build-python:
@@ -41,38 +32,45 @@ jobs:
     steps:
       - checkout
       - run:
-          # Intentionally not using CircleCI's "python/install-packages" step,
-          # because we don't want to install packages from any requirements.txt
-          # just yet.
           # Test that we can build a source distribution that can correctly
           # install from clean slate.
-          # "python setup.py sdist" creates dist/nskipgrams-x.y.z.tar.gz
+          # "python -m build" creates
+          # dist/<pkg-name>-x.y.z.tar.gz and dist/<pkg-name>-x.y.z-py3-none-any.whl
           name: Build source distribution and install package from it
-          working_directory: ~/project/
           command: |
-              pip install --progress-bar off --upgrade pip setuptools
-              python setup.py sdist
-              pip install dist/`ls dist/ | grep .tar.gz`
-      - run:
-          name: Install the full development requirements
-          working_directory: ~/project/
-          command: pip install --progress-bar off -r dev-requirements.txt
-      - run:
-          name: Check for PyPI compliance via twine
-          working_directory: ~/project/
-          command: twine check dist/`ls dist/ | grep .tar.gz`
+              pip install -r dev-requirements.txt && \
+              python -m build && \
+              pip install dist/`ls dist/ | grep .whl`
       - run:
           name: Show installed Python packages
           command: pip list -v
       - run:
           name: Run python tests
-          working_directory: ~/
-          # Avoid being able to import nskipgrams by relative import.
-          # Test code by importing the *installed* nskipgrams in site-packages.
           command: |
-              pytest -vv --cov=project/nskipgrams.py --junitxml=/tmp/testxml/report.xml project/test_nskipgrams.py
+              pwd
+              cd ..
+              pwd
+              pytest -vv --durations=0 --junitxml=/tmp/testxml/report.xml project/test_nskipgrams.py
+          no_output_timeout: 20m
       - store_test_results:
           path: /tmp/testxml/
+
+  build-python-win:
+    executor:
+      name: win/default
+      shell: powershell.exe
+    steps:
+      - checkout
+      - run: systeminfo
+      - run:
+          name: Run tests on Windows
+          shell: bash.exe
+          command: |
+            python --version && \
+            pip install -r dev-requirements.txt && \
+            pip install . && \
+            pip list && \
+            pytest
 
 workflows:
   version: 2
@@ -80,16 +78,48 @@ workflows:
     jobs:
       - pre-build:
           name: flake8
-          command-name: flake8
-          command-run: flake8 --config=project/setup.cfg project/setup.py project/nskipgrams.py project/test_nskipgrams.py
+          command-run: |
+            pip install -r dev-requirements.txt && \
+            flake8 nskipgrams.py test_nskipgrams.py
       - pre-build:
           name: black
-          command-name: black
-          command-run: black --check project/setup.py project/nskipgrams.py project/test_nskipgrams.py
+          command-run:  |
+            pip install -r dev-requirements.txt && \
+            black --check nskipgrams.py test_nskipgrams.py
+      - pre-build:
+          name: twine
+          command-run: |
+            pip install -r dev-requirements.txt && \
+            python -m build && \
+            twine check dist/`ls dist/ | grep .tar.gz` && \
+            twine check dist/`ls dist/ | grep .whl`
+      - pre-build:
+          name: safety
+          command-run: |
+            pip install -e . && \
+            pip install --upgrade safety && \
+            safety --version && \
+            pip freeze | safety check --stdin
+      - pre-build:
+          name: bandit
+          command-run: |
+            pip install --upgrade bandit && \
+            bandit --version && \
+            bandit -r src -x test_nskipgrams.py
       - build-python:
           requires:
             - flake8
             - black
+            - twine
+            - safety
+            - bandit
           matrix:
             parameters:
-              python-version: ["3.6", "3.7", "3.8", "3.9"]
+              python-version: ["3.7", "3.8", "3.9", "3.10"]
+      - build-python-win:
+          requires:
+            - flake8
+            - black
+            - twine
+            - safety
+            - bandit

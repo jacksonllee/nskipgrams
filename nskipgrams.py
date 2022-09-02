@@ -5,12 +5,17 @@ License: MIT License
 Source: https://github.com/jacksonllee/nskipgrams
 """
 
+try:
+    from importlib.metadata import version
+except ModuleNotFoundError:
+    # For Python < 3.8
+    from importlib_metadata import version
+
 from collections import defaultdict, OrderedDict
 from itertools import combinations
-import pkg_resources
 
 
-__version__ = pkg_resources.get_distribution("nskipgrams").version
+__version__ = version("nskipgrams")
 
 
 def _trie():
