@@ -11,7 +11,7 @@ jobs:
         type: string
     docker:
       # Pick the highest Python 3.x version that the library is known to support
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
         #auth:
         #  username: $DOCKERHUB_USERNAME
         #  password: $DOCKERHUB_PASSWORD
@@ -38,7 +38,7 @@ jobs:
           # dist/<pkg-name>-x.y.z.tar.gz and dist/<pkg-name>-x.y.z-py3-none-any.whl
           name: Build source distribution and install package from it
           command: |
-              pip install -r dev-requirements.txt && \
+              pip install ".[dev]" && \
               python -m build && \
               pip install dist/`ls dist/ | grep .whl`
       - run:
@@ -51,7 +51,6 @@ jobs:
               cd ..
               pwd
               pytest -vv --durations=0 --junitxml=/tmp/testxml/report.xml project/test_nskipgrams.py
-          no_output_timeout: 20m
       - store_test_results:
           path: /tmp/testxml/
 
@@ -67,8 +66,7 @@ jobs:
           shell: bash.exe
           command: |
             python --version && \
-            pip install -r dev-requirements.txt && \
-            pip install . && \
+            pip install ".[dev]" && \
             pip list && \
             pytest
 
@@ -79,17 +77,17 @@ workflows:
       - pre-build:
           name: flake8
           command-run: |
-            pip install -r dev-requirements.txt && \
+            pip install ".[dev]" && \
             flake8 nskipgrams.py test_nskipgrams.py
       - pre-build:
           name: black
           command-run:  |
-            pip install -r dev-requirements.txt && \
+            pip install ".[dev]" && \
             black --check nskipgrams.py test_nskipgrams.py
       - pre-build:
           name: twine
           command-run: |
-            pip install -r dev-requirements.txt && \
+            pip install ".[dev]" && \
             python -m build && \
             twine check dist/`ls dist/ | grep .tar.gz` && \
             twine check dist/`ls dist/ | grep .whl`
@@ -115,7 +113,7 @@ workflows:
             - bandit
           matrix:
             parameters:
-              python-version: ["3.7", "3.8", "3.9", "3.10"]
+              python-version: ["3.8", "3.9", "3.10", "3.11"]
       - build-python-win:
           requires:
             - flake8

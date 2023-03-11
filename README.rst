@@ -277,7 +277,7 @@ the ``skip`` keyword argument (in addition to ``seq`` and ``n``).
 Citation
 --------
 
-Lee, Jackson L. 2021. nskipgrams: A lightweight Python package to work with ngrams and skipgrams. https://doi.org/10.5281/zenodo.4002095
+Lee, Jackson L. 2023. nskipgrams: A lightweight Python package to work with ngrams and skipgrams. https://doi.org/10.5281/zenodo.4002095
 
 .. code-block:: latex
 

@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 
+## [0.5.0] - 2023-03-11
+
+### Added
+- Added support for Python 3.11.
+
+### Removed
+- Dropped support for Python 3.7.
+
 ## [0.4.0] - 2022-09-02
 
 ### Added
